@@ -2,11 +2,18 @@
 import pandas as pd
 import pystan
 from sklearn import datasets
+from sklearn import preprocessing
 import matplotlib.pyplot  as plt
 import numpy as np
 
+plt.style.use('seaborn-notebook')
+plt.rcParams['axes.spines.top'] = False
+plt.rcParams['axes.spines.right'] = False
+plt.rcParams['figure.figsize'] = [5, 4]
+plt.rcParams['axes.linewidth'] = 1.
+
 # %%
-stan_model = pystan.StanModel(file='pca.stan')
+pca = pystan.StanModel(file='pca.stan')
 
 # %%
 iris = datasets.load_iris()
@@ -19,17 +26,148 @@ data = {
     'G': G,
     'Y': Y
 }
-o = stan_model.optimizing(data=data)
+min_noise = np.inf
+for i in range(20):
+    opt = pca.optimizing(data=data)
+    if opt['s2_model'] < min_noise:
+        o = opt.copy()
+        min_noise = opt['s2_model']
 
-plt.scatter(o['X'][:, 0], o['X'][:, 1], c='k')
-plt.title('{}'.format(o['s2_model']))
+df = pd.DataFrame(Y, columns=iris.feature_names)
+df['X1'] = o['X'][:, 0]
+df['X2'] = o['X'][:, 1]
+df['species'] = iris.target_names[iris.target]
+
+colors = {'setosa':     (33./256, 33./256, 33./256),
+          'versicolor': (48./256, 108./256, 130./256),
+          'virginica':  (181./256, 64./256, 39./256)}
+
+for name, group in df.groupby('species'):
+    plt.scatter(group['X1'], group['X2'],
+    s=30,
+    label=name,
+    edgecolor='none',
+    color=colors[name])
+
+print(min_noise)
+
+plt.xlabel('$X_1$ (PC1)')
+plt.ylabel('$X_2$ (PC2)')
+
+plt.gca().yaxis.set_ticks_position('left')
+plt.gca().xaxis.set_ticks_position('bottom')
+
+plt.legend(loc='upper center',
+           scatterpoints=3,
+           bbox_to_anchor=(0.5, -0.17),
+           ncol=3)
+
+plt.title('Principal Component Analysis\n(PML Estimate)')
+plt.savefig('iris_pca.png', bbox_inches='tight')
 
 # %%
-samples = stan_model.sampling(data=data, iter=250, chains=1)
+pd.DataFrame(Y).describe()
 
 # %%
-X = samples.extract('X')['X'].mean(0)
-X_var = samples.extract('X')['X'].var(0)
+batch = np.random.binomial(1, 0.5, (Y.shape[0], 1))
+effect = np.random.normal(2.0, 0.5, size=Y.shape)
+Y_b = Y + batch * effect
 
-plt.errorbar(X[:, 0], X[:, 1], np.sqrt(X_var[:, 0]), np.sqrt(X_var[:, 1]),
-                linestyle='none', marker='o', c='k');
+# %%
+N, G = Y_b.shape
+data = {
+    'N': N,
+    'G': G,
+    'Y': Y_b
+}
+min_noise = np.inf
+for i in range(20):
+    opt = pca.optimizing(data=data)
+    if opt['s2_model'] < min_noise:
+        o = opt.copy()
+        min_noise = opt['s2_model']
+
+df = pd.DataFrame(Y_b, columns=iris.feature_names)
+df['X1'] = o['X'][:, 0]
+df['X2'] = o['X'][:, 1]
+df['species'] = iris.target_names[iris.target]
+df['batch'] = batch
+
+marker = {0: '^', 1: '*'}
+
+for name, group in df.groupby(['batch', 'species']):
+    plt.scatter(group['X1'], group['X2'],
+    s=40 + 30 * name[0],
+    label='Batch {} - {}'.format(name[0] + 1, name[1]),
+    edgecolor='none',
+    marker=marker[name[0]],
+    color=colors[name[1]])
+
+print(min_noise)
+
+plt.xlabel('$X_1$ (PC1)')
+plt.ylabel('$X_2$ (PC2)')
+
+plt.gca().yaxis.set_ticks_position('left')
+plt.gca().xaxis.set_ticks_position('bottom')
+
+plt.legend(loc='upper center',
+           scatterpoints=3,
+           bbox_to_anchor=(0.5, -0.17),
+           ncol=2)
+
+plt.title('Principal Component Analysis\n(PML Estimate)')
+plt.savefig('iris_batch_pca.png', bbox_inches='tight')
+
+# %%
+rca = pystan.StanModel(file='rca.stan')
+
+# %%
+N, G = Y_b.shape
+data = {
+    'N': N,
+    'G': G,
+    'Y': Y_b,
+    'P': 1,
+    'Z': batch
+}
+min_noise = np.inf
+for i in range(20):
+    opt = rca.optimizing(data=data)
+    if opt['s2_model'] < min_noise:
+        o = opt.copy()
+        min_noise = opt['s2_model']
+
+df = pd.DataFrame(Y_b, columns=iris.feature_names)
+df['X1'] = o['X'][:, 0]
+df['X2'] = o['X'][:, 1]
+df['species'] = iris.target_names[iris.target]
+df['batch'] = batch
+
+for name, group in df.groupby(['batch', 'species']):
+    plt.scatter(group['X1'], group['X2'],
+    s=40 + 30 * name[0],
+    label='Batch {} - {}'.format(name[0] + 1, name[1]),
+    edgecolor='none',
+    marker=marker[name[0]],
+    color=colors[name[1]])
+
+plt.xlabel('$X_1$ (PC1)')
+plt.ylabel('$X_2$ (PC2)')
+
+plt.gca().yaxis.set_ticks_position('left')
+plt.gca().xaxis.set_ticks_position('bottom')
+
+plt.legend(loc='upper center',
+           scatterpoints=3,
+           bbox_to_anchor=(0.5, -0.17),
+           ncol=2)
+
+plt.title('Residual Component Analysis\n(PML Estimate)')
+
+print(o['s2_model'])
+plt.savefig('iris_batch_rca.png', bbox_inches='tight')
+
+
+# %% 
+plt.rcParams

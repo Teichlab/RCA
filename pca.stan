@@ -15,5 +15,4 @@ model {
     for (n in 1:N){
         Y[n] ~ normal(W * X[n] + mu, s2_model);
     }
-
 }
