@@ -26,13 +26,18 @@ data = {
     'G': G,
     'Y': Y
 }
-opt = pca.optimizing(data=data)
-o = opt
-min_noise = opt['s2_model']
+samples_1 = pca.sampling(data=data, chains=3, iter=500)
 
-df = pd.DataFrame(Y, columns=iris.feature_names)
-df['X1'] = o['X'][:, 0]
-df['X2'] = o['X'][:, 1]
+# %%
+samples_1.plot(['mu', 's2_model'])
+plt.tight_layout()
+
+# %%
+X_mean = samples_1.extract('X')['X'].mean(0)
+
+df = pd.DataFrame(Y_b, columns=iris.feature_names)
+df['X1'] = X_mean[:, 0]
+df['X2'] = X_mean[:, 1]
 df['species'] = iris.target_names[iris.target]
 
 colors = {'setosa':     (33./256, 33./256, 33./256),
@@ -46,8 +51,6 @@ for name, group in df.groupby('species'):
     edgecolor='none',
     color=colors[name])
 
-print(min_noise)
-
 plt.xlabel('$X_1$ (PC1)')
 plt.ylabel('$X_2$ (PC2)')
 
@@ -59,7 +62,7 @@ plt.legend(loc='upper center',
            bbox_to_anchor=(0.5, -0.17),
            ncol=3)
 
-plt.title('Principal Component Analysis\n(PML Estimate)')
+plt.title('Principal Component Analysis\n(Mean of posterior)')
 plt.savefig('iris_pca.png', bbox_inches='tight')
 
 # %%
@@ -77,14 +80,18 @@ data = {
     'G': G,
     'Y': Y_b
 }
+samples_2 = pca.sampling(data=data, chains=3, iter=500)
 
-opt = pca.optimizing(data=data)
-o = opt
-min_noise = opt['s2_model']
+# %%
+samples_2.plot(['mu', 's2_model'])
+plt.tight_layout()
+
+# %%
+X_mean = samples_2.extract('X')['X'].mean(0)
 
 df = pd.DataFrame(Y_b, columns=iris.feature_names)
-df['X1'] = o['X'][:, 0]
-df['X2'] = o['X'][:, 1]
+df['X1'] = X_mean[:, 0]
+df['X2'] = X_mean[:, 1]
 df['species'] = iris.target_names[iris.target]
 df['batch'] = batch
 
@@ -111,7 +118,7 @@ plt.legend(loc='upper center',
            bbox_to_anchor=(0.5, -0.17),
            ncol=2)
 
-plt.title('Principal Component Analysis\n(PML Estimate)')
+plt.title('Principal Component Analysis\n(Mean of posterior)')
 plt.savefig('iris_batch_pca.png', bbox_inches='tight')
 
 # %%
@@ -126,14 +133,18 @@ data = {
     'P': 1,
     'Z': batch
 }
+samples_3 = rca.sampling(data=data, chains=3, iter=500)
 
-opt = rca.optimizing(data=data)
-o = opt
-min_noise = opt['s2_model']
+# %%
+samples_3.plot(['mu', 's2_model'])
+plt.tight_layout()
+
+# %%
+X_mean = samples_3.extract('X')['X'].mean(0)
 
 df = pd.DataFrame(Y_b, columns=iris.feature_names)
-df['X1'] = o['X'][:, 0]
-df['X2'] = o['X'][:, 1]
+df['X1'] = X_mean[:, 0]
+df['X2'] = X_mean[:, 1]
 df['species'] = iris.target_names[iris.target]
 df['batch'] = batch
 
@@ -156,9 +167,8 @@ plt.legend(loc='upper center',
            bbox_to_anchor=(0.5, -0.17),
            ncol=2)
 
-plt.title('Residual Component Analysis\n(PML Estimate)')
+plt.title('Residual Component Analysis\n(Mean of posterior)')
 
-print(o['s2_model'])
 plt.savefig('iris_batch_rca.png', bbox_inches='tight')
 
 
