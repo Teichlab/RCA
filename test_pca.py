@@ -26,12 +26,9 @@ data = {
     'G': G,
     'Y': Y
 }
-min_noise = np.inf
-for i in range(20):
-    opt = pca.optimizing(data=data)
-    if opt['s2_model'] < min_noise:
-        o = opt.copy()
-        min_noise = opt['s2_model']
+opt = pca.optimizing(data=data)
+o = opt
+min_noise = opt['s2_model']
 
 df = pd.DataFrame(Y, columns=iris.feature_names)
 df['X1'] = o['X'][:, 0]
@@ -80,12 +77,10 @@ data = {
     'G': G,
     'Y': Y_b
 }
-min_noise = np.inf
-for i in range(20):
-    opt = pca.optimizing(data=data)
-    if opt['s2_model'] < min_noise:
-        o = opt.copy()
-        min_noise = opt['s2_model']
+
+opt = pca.optimizing(data=data)
+o = opt
+min_noise = opt['s2_model']
 
 df = pd.DataFrame(Y_b, columns=iris.feature_names)
 df['X1'] = o['X'][:, 0]
@@ -131,12 +126,10 @@ data = {
     'P': 1,
     'Z': batch
 }
-min_noise = np.inf
-for i in range(20):
-    opt = rca.optimizing(data=data)
-    if opt['s2_model'] < min_noise:
-        o = opt.copy()
-        min_noise = opt['s2_model']
+
+opt = rca.optimizing(data=data)
+o = opt
+min_noise = opt['s2_model']
 
 df = pd.DataFrame(Y_b, columns=iris.feature_names)
 df['X1'] = o['X'][:, 0]
