@@ -3,7 +3,7 @@ import pandas as pd
 import pystan
 from sklearn import datasets
 from sklearn import preprocessing
-import matplotlib.pyplot  as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 plt.style.use('seaborn-notebook')
@@ -172,5 +172,5 @@ plt.title('Residual Component Analysis\n(Mean of posterior)')
 plt.savefig('iris_batch_rca.png', bbox_inches='tight')
 
 
-# %% 
+# %%
 plt.rcParams
