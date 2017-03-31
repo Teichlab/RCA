@@ -1,11 +1,12 @@
 
 data {
-  int<lower=0> N; // number of data points i n dataset
-  int<lower=0> D; // dimension
+  int<lower=0> N; // number of data points in dataset
+  int<lower=1> P; // number of known covariates
+  int<lower=1> G; // number of observed genes
 
-  int<lower=0> P; // number of known covariates
-  vector[D] x[N]; // data
-  matrix[P, N] y; // Knwon covariates
+  vector[P] x[N]; // Covariates
+  real y[N];      // Expression values
+  int<lower=1, upper=G> gene[N]; // Gene identifiers
 
 }
 parameters {
@@ -13,19 +14,19 @@ parameters {
   real<lower=0> sigma;
 
   // Partial regression weights
-  matrix[D, P] w_y;
-  vector<lower=0>[P] beta;
+  matrix[G, P] w;
+  vector<lower=0>[P] alpha;
 }
 model {
   // priors
-  for (d in 1:D){
-    w_y[d] ~ normal(0, sigma * beta);
+  for (g in 1:G){
+    w[g] ~ normal(0, sigma * alpha);
   }
   sigma ~ lognormal(0, 1);
-  beta ~ inv_gamma(1, 1);
+  alpha ~ inv_gamma(1, 1);
 
   // likelihood
   for (n in 1:N){
-    x[n] ~ normal (w_y * col(y, n), sigma);
+    x[n] ~ normal(w[gene[n]] * x[n], sigma);
   }
 }
