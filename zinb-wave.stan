@@ -21,27 +21,26 @@ parameters {
   matrix[G, 1] gamma_mu;
   matrix[G, 1] gamma_pi;
 
-}
-model {
-  row_vector[N] mu;
-  row_vector[N] pi_;
-  real theta[N];
-
+  // Dispersion
   real zeta[G];
 
-  real delta_0;
+}
+model {
+  real mu[N];
+  real pi_[N];
+  real theta[N];
 
   // likelihood
   for (n in 1:N){
-    mu = exp(beta_mu[gene[n]] * x[n] + gamma_mu[gene[N]]);
-    pi_ = inv_logit(beta_pi[gene[n]] * x[n] + gamma_pi[gene[N]]);
+    mu[n] = exp(beta_mu[gene[n]] * x[n] + gamma_mu[gene[N]])[1];
+    pi_[n] = inv_logit(beta_pi[gene[n]] * x[n] + gamma_pi[gene[N]])[1];
     theta[n] = exp(zeta[gene[n]]);
-    if (y[n] == 0) {
-      delta_0 = 1.;
+    if (y[n] != 0) {
+      target += bernoulli_lpmf(0 | pi_[n]) + neg_binomial_2_lpmf(y[n] | mu[n], theta[n]);
     }
     else {
-      delta_0 = 0.;
+      target += log_sum_exp(bernoulli_lpmf(1 | pi_[n]),
+                            bernoulli_lpmf(0 | pi_[n]) + neg_binomial_2_lpmf(y[n] | mu[n], theta[n]));
     }
-    target += pi_[n] * delta_0 + (1. - pi_[n]) * neg_binomial_2_lpmf(y[n] | mu[n], theta[n]);
   }
 }
