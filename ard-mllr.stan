@@ -27,6 +27,6 @@ model {
 
   // likelihood
   for (n in 1:N){
-    x[n] ~ normal(w[gene[n]] * x[n], sigma);
+    y[n] ~ normal(w[gene[n]] * x[n], sigma);
   }
 }
