@@ -9,7 +9,7 @@ data {
   vector[P] x[N]; // Covariates, including intercept.
   int y[N];      // Expression values (counts!)
   int<lower=1, upper=G> gene[N]; // Gene identifiers
-  int<lower=1, upper=G> cell[N]; // Cell identifiers
+  int<lower=1, upper=C> cell[N]; // Cell identifiers
 
 }
 parameters {
@@ -36,6 +36,9 @@ model {
   row_vector[1] mu;
   row_vector[1] pi_;
   real theta;
+
+  // Priors
+  to_vector(w) ~ normal(0, 1);
 
   // likelihood
   for (n in 1:N){
