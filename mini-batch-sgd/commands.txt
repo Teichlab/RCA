@@ -1,0 +1,3 @@
+python .\pca.py .\iris_long.csv
+
+python .\pca.py --obs_col=cell --var_col=gene --val_col=expression --batch_size=10000 --inner_iter=2 .\zeisel_sample_long.csv

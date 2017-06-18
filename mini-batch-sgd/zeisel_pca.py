@@ -38,13 +38,6 @@ W_ = tf.gather(W, variable_idx)
 x_ = tf.gather(tf.matrix_transpose(x), sample_idx)
 y_hat = tf.reduce_sum(W_ * x_, 1)
 
-# orth_penalty = tf.abs(tf.reduce_sum(tf.reduce_prod(x_, 1)))
-
-# norms = tf.sqrt(tf.reduce_sum(tf.square(x_), 1))
-# l1_penalty = tf.reduce_sum(norms)
-
-# cost = tf.nn.l2_loss(y_ - y_hat) + 0.1 * orth_penalty + 1. * l1_penalty
-
 cost = tf.nn.l2_loss(y_ - y_hat) / batch_size
 
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
