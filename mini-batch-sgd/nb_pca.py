@@ -1,3 +1,5 @@
+from time import time
+
 import click
 import numpy as np
 import pandas as pd
@@ -25,16 +27,20 @@ def next_batch(data, batch_size, i, NN):
 @click.option('--learning_rate', default=0.01)
 @click.option('--inner_iter', default=5)
 @click.option('--report_every', default=100)
+@click.option('--title', default='')
 def main(input_file, obs_col, var_col, val_col, offset_col, batch_size,
-         num_iter, learning_rate, inner_iter, report_every):
+         num_iter, learning_rate, inner_iter, report_every, title):
 
     ## Data loading ##
 
     data = pd.read_csv(input_file)
 
-    G = data[var_col].unique().shape[0]
-    S = data[obs_col].unique().shape[0]
+    print(data.head())
 
+    G = data[var_col].unique().shape[0]
+    C = data[obs_col].unique().shape[0]
+
+    t0 = time()
     tf.logging.info('Shuffling...')
     data = data.sample(frac=1)
     NN = data.shape[0]
@@ -46,8 +52,8 @@ def main(input_file, obs_col, var_col, val_col, offset_col, batch_size,
     ## Model ##
 
     W = tf.Variable(np.random.randn(G, N), name='weights')
-    x = tf.Variable(np.random.randn(N, S), name='PCs')
-    E = tf.Variable(np.random.randn(S), name='Efficiency')
+    x = tf.Variable(np.random.randn(N, C), name='PCs')
+    E = tf.Variable(np.random.randn(C), name='Efficiency')
     S = tf.Variable(np.array([0.]), name='Scaling')
 
     sample_idx = tf.placeholder(tf.int32, shape=[None])
@@ -104,15 +110,17 @@ def main(input_file, obs_col, var_col, val_col, offset_col, batch_size,
 
     plt.figure(figsize=(9, 4))
     plt.subplot(1, 2, 1)
-    plt.scatter(X_result[0], X_result[1], s=10, alpha=0.33, c=E_result)
-    plt.colorbar()
+    plt.scatter(X_result[0], X_result[1], s=10, alpha=0.33, c='k')
     plt.xlabel('x1')
     plt.ylabel('x2')
+    plt.title(title + ' - {} x {}'.format(C, G))
 
     plt.subplot(1, 2, 2)
     plt.plot(costs, c='k')
     plt.xlabel('Iteration')
     plt.ylabel('Cost')
+
+    plt.title('Runtime: {:.2f}s'.format(time() - t0))
 
     plt.tight_layout()
     plt.show()

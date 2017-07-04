@@ -1,3 +1,11 @@
 python .\pca.py .\iris_long.csv
 
 python .\pca.py --obs_col=cell --var_col=gene --val_col=expression --batch_size=10000 --inner_iter=2 .\zeisel_sample_long.csv
+
+python .\nb_pca.py --batch_size=10000 --inner_iter=3 --title="Zeisel et al" --learning_rate=0.005 --num_iter=2000 .\zeisel_sample_long_counts.csv
+
+python .\nb_pca.py --batch_size=10000 --inner_iter=3 --title="Grun et al" --learning_rate=0.005 --num_iter=2000 .\grun_sample_long_counts.csv
+
+python .\nb_pca.py --batch_size=10000 --inner_iter=3 --title="Velten et al" --learning_rate=0.005 --num_iter=2000 .\velten_sample_long_counts.csv
+
+python .\nb_pca.py --batch_size=10000 --inner_iter=3 --title="Vickovic et al" --learning_rate=0.005 --num_iter=2000 .\vickovic_sample_long_counts.csv
